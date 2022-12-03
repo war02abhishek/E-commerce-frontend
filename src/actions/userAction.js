@@ -36,39 +36,47 @@ import {
 
 import axios from "axios";
 
+const API = axios.create({ baseURL: "https://e-commerce-d8gq.onrender.com/" });
 
-export const login = (email, password,navigate) =>async(dispatch) =>{
+https: API.interceptors.request.use((req) => {
+  if (localStorage.getItem("user")) {
+    req.headers.Authorization = `Bearer ${
+      JSON.parse(localStorage.getItem("user"))._id
+    }`;
+  }
 
-    try {
-        dispatch({ type: LOGIN_REQUEST });
-        console.log(email, password);
- const config = { headers: { "Content-Type": "application/json" } };
- const { data } = await axios.post(
-   `/api/v1/login`,
-   { email, password },
-   config
- );
+  return req;
+});
 
-  await  dispatch({ type: LOGIN_SUCCESS, payload: data?.user });
-//  console.log('LOGIN SUCCESS in REducer');
-  // navigate("/Profile");
-  // console.log('pls navigate')
-        
-    } catch (error) {
-        dispatch({ type: LOGIN_FAIL, payload: error.response?.data?.message });
-    }
+export const login = (email, password, navigate) => async (dispatch) => {
+  try {
+    dispatch({ type: LOGIN_REQUEST });
+    console.log(email, password);
+    const config = { headers: { "Content-Type": "application/json" } };
+    const { data } = await API.post(
+      `/api/v1/login`,
+      { email, password },
+      config
+    );
 
+    await dispatch({ type: LOGIN_SUCCESS, payload: data?.user });
+    //  console.log('LOGIN SUCCESS in REducer');
+    // navigate("/Profile");
+    // console.log('pls navigate')
+  } catch (error) {
+    dispatch({ type: LOGIN_FAIL, payload: error.response?.data?.message });
+  }
 };
 
 // Register user
-export const register = (userData,navigate) => async (dispatch) => {
+export const register = (userData, navigate) => async (dispatch) => {
   try {
     dispatch({ type: REGISTER_USER_REQUEST });
     console.log(userData);
     // const config = { headers: { "Content-type": "multipart/form-data " } };
-    const { data } = await axios.post(`/api/v1/register`, userData);
+    const { data } = await API.post(`/api/v1/register`, userData);
     console.log(data);
-   await dispatch({ type: REGISTER_USER_SUCCESS, payload: data.user });
+    await dispatch({ type: REGISTER_USER_SUCCESS, payload: data.user });
     navigate("/Profile");
   } catch (error) {
     dispatch({
@@ -83,7 +91,7 @@ export const googlelogin = (userData, navigate) => async (dispatch) => {
     dispatch({ type: REGISTER_USER_REQUEST });
     console.log(userData);
     // const config = { headers: { "Content-type": "multipart/form-data " } };
-    const { data } = await axios.post(`/api/v1/googlelogin`, userData);
+    const { data } = await API.post(`/api/v1/googlelogin`, userData);
     console.log(data);
     await dispatch({ type: REGISTER_USER_SUCCESS, payload: data.user });
     navigate("/");
@@ -96,16 +104,16 @@ export const googlelogin = (userData, navigate) => async (dispatch) => {
 };
 
 //Log out
-export const logout =()=>async(dispatch)=>{
-    try {
-      await axios.get(`/api/v1/logout`);
+export const logout = () => async (dispatch) => {
+  try {
+    await API.get(`/api/v1/logout`);
 
-      dispatch({ type: LOGOUT_SUCCESS });
-      localStorage.removeItem("user");
-    } catch (error) {
-      dispatch({ type: LOGOUT_FAIL, payload: error.response.data.message });
-    }
-}
+    dispatch({ type: LOGOUT_SUCCESS });
+    localStorage.removeItem("user");
+  } catch (error) {
+    dispatch({ type: LOGOUT_FAIL, payload: error.response.data.message });
+  }
+};
 
 // Load user
 export const loadUser = () => async (dispatch) => {
@@ -113,45 +121,38 @@ export const loadUser = () => async (dispatch) => {
     dispatch({ type: LOAD_USER_REQUEST });
     // const config = { headers: { "Content-Type": "application/json" } };
 
-    const { data } = await axios.get(`api/v1/me`);
+    const { data } = await API.get(`api/v1/me`);
     dispatch({ type: LOAD_USER_SUCCESS, payload: data.user });
   } catch (error) {
-      // console.log(error);
+    // console.log(error);
     dispatch({
       type: LOAD_USER_FAIL,
-      
+
       payload: error.response.data.message,
     });
   }
 };
 
-export const updateProfile = (userdata)=>async(dispatch)=>{
-
+export const updateProfile = (userdata) => async (dispatch) => {
   try {
-
     dispatch({ type: UPDATE_PROFILE_REQUEST });
-     console.log(userdata);
+    console.log(userdata);
     // const config = { headers: { "Content-Type": "multipart/form-data" } };
-   
-    const { data } = await axios.put(`/api/v1/me/update`, userdata);
+
+    const { data } = await API.put(`/api/v1/me/update`, userdata);
     dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data.success });
-    
   } catch (error) {
     dispatch({
       type: UPDATE_PROFILE_FAIL,
       payload: error.response.data.message,
     });
   }
-
-
-}
+};
 
 // Clearing Errors
 export const clearErrors = () => async (dispatch) => {
   dispatch({ type: CLEAR_ERRORS });
 };
-
-
 
 //ADMIN
 
